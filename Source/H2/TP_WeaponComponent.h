@@ -57,4 +57,6 @@ protected:
 private:
 	/** The Character holding this weapon*/
 	AH2Character* Character;
+
+	bool bAttached;
 };

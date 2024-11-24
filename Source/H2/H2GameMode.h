@@ -13,6 +13,8 @@ class AH2GameMode : public AGameModeBase
 
 public:
 	AH2GameMode();
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
 
 

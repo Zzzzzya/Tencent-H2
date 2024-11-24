@@ -3,6 +3,9 @@
 #include "H2Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameStateShootScore.h"
+#include "GameFramework/Character.h"
+#include "H2Character.h"
 
 AH2Projectile::AH2Projectile() 
 {
@@ -40,6 +43,24 @@ void AH2Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 
+		if(OnwerCharacter)
+		{
+			if(UWorld* World = GetWorld())
+			{
+				AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
+				if (GameState)
+				{
+					OnwerCharacter->Score += 1;
+					GameState->AddScore(1);
+
+					if(GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("%p Score: %d"),OnwerCharacter, OnwerCharacter->Score));
+					}
+				}
+			}
+		}
+		
 		Destroy();
 	}
 }

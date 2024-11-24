@@ -11,7 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 
 // Sets default values for this component's properties
-UTP_WeaponComponent::UTP_WeaponComponent()
+UTP_WeaponComponent::UTP_WeaponComponent():bAttached(false)
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
@@ -40,7 +40,11 @@ void UTP_WeaponComponent::Fire()
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 	
 			// Spawn the projectile at the muzzle
-			World->SpawnActor<AH2Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			auto Projectile = World->SpawnActor<AH2Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			if(Projectile)
+			{
+				Projectile->OnwerCharacter = Character;
+			}
 		}
 	}
 	
@@ -64,12 +68,25 @@ void UTP_WeaponComponent::Fire()
 
 void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 {
+	if(bAttached)
+	{
+		return;
+	}
+	
 	Character = TargetCharacter;
+	
+	
 	if (Character == nullptr)
 	{
 		return;
 	}
 
+	bAttached = true;
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Player:%d"), Character->ScoreArrayIndex));
+	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("Attach Weapon1！"));
 	// Attach the weapon to the First Person Character
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
