@@ -24,18 +24,17 @@ void UTP_WeaponComponent::Fire()
 	{
 		return;
 	}
-
+	
 	// Try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{
 		UWorld* const World = GetWorld();
-		if (World != nullptr)
-		{
+		if (World != nullptr){
 			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-	
+			
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
@@ -71,6 +70,7 @@ void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("Attach Weapon1！"));
 	// Attach the weapon to the First Person Character
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
@@ -81,6 +81,7 @@ void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 	// Set up action bindings
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Attach Weapon2！"));
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
@@ -89,6 +90,7 @@ void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
+			
 			// Fire
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
 		}

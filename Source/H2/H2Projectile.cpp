@@ -29,6 +29,8 @@ AH2Projectile::AH2Projectile()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+
+	bReplicates = true;
 }
 
 void AH2Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
