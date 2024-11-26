@@ -6,6 +6,7 @@
 #include "GameStateShootScore.h"
 #include "GameFramework/Character.h"
 #include "H2Character.h"
+#include "TP_OnHitComponent.h"
 
 AH2Projectile::AH2Projectile() 
 {
@@ -47,6 +48,13 @@ void AH2Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		{
 			if(UWorld* World = GetWorld())
 			{
+
+				UTP_OnHitComponent* OnHitComponent = OnwerCharacter->FindComponentByClass<UTP_OnHitComponent>();
+				if(OnHitComponent)
+				{
+					OnHitComponent->ScaleUp();
+				}
+				
 				AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
 				if (GameState)
 				{
