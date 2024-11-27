@@ -64,6 +64,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasRifle();
 
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	void GetReady();
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -84,10 +87,29 @@ public:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
+	UPROPERTY(Replicated)
 	int ScoreArrayIndex = 0;
 	
 	UPROPERTY(Replicated)
 	int Score = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "Score")
+	int GetScore() const { return Score; }
+
+	UFUNCTION(BlueprintCallable, Category = "Score")
+	int GetScoreArrayIndex() const { return ScoreArrayIndex; }
+
+	UFUNCTION(Server,Reliable)
+	void RegisterScoreIndex();
+
+	UFUNCTION(Server,Reliable)
+	void GetReadyToServer();
+	
+	TSubclassOf<class AH2Projectile> ProjectileClass;
+public:
+	/** Make the weapon Fire a Projectile */
+	UFUNCTION(Server,Reliable)
+	void Fire();
 
 };
 

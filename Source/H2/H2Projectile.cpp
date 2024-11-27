@@ -6,6 +6,7 @@
 #include "GameStateShootScore.h"
 #include "GameFramework/Character.h"
 #include "H2Character.h"
+#include "ScoreActor.h"
 #include "TP_OnHitComponent.h"
 
 AH2Projectile::AH2Projectile() 
@@ -35,36 +36,41 @@ AH2Projectile::AH2Projectile()
 	InitialLifeSpan = 3.0f;
 
 	bReplicates = true;
+	SetReplicatingMovement(true);
 }
 
 void AH2Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 
+		if(!HasAuthority())
+		{
+			return;
+		}
+			
 		if(OnwerCharacter)
 		{
 			if(UWorld* World = GetWorld())
 			{
 
-				UTP_OnHitComponent* OnHitComponent = OnwerCharacter->FindComponentByClass<UTP_OnHitComponent>();
-				if(OnHitComponent)
+				int ScoreIncrease = 1;
+				AScoreActor* ScoreActor = Cast<AScoreActor>(OtherActor);
+				if(!ScoreActor)
 				{
-					OnHitComponent->ScaleUp();
+					return;
 				}
-				
+				ScoreIncrease = ScoreActor->Score * (ScoreActor->IsSpecial()?2:1);
 				AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
 				if (GameState)
 				{
-					OnwerCharacter->Score += 1;
-					GameState->AddScore(1);
+					OnwerCharacter->Score += ScoreIncrease;
+					GameState->UpdateSomeoneScore(OnwerCharacter->ScoreArrayIndex, OnwerCharacter->Score);
+					GameState->AddScore(ScoreIncrease);
 
-					if(GEngine)
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("%p Score: %d"),OnwerCharacter, OnwerCharacter->Score));
-					}
+
 				}
 			}
 		}

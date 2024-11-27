@@ -25,45 +25,7 @@ void UTP_WeaponComponent::Fire()
 		return;
 	}
 	
-	// Try and fire a projectile
-	if (ProjectileClass != nullptr)
-	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr){
-			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-			
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-	
-			// Spawn the projectile at the muzzle
-			auto Projectile = World->SpawnActor<AH2Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			if(Projectile)
-			{
-				Projectile->OnwerCharacter = Character;
-			}
-		}
-	}
-	
-	// Try and play the sound if specified
-	if (FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
-	}
-	
-	// Try and play a firing animation if specified
-	if (FireAnimation != nullptr)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
-		if (AnimInstance != nullptr)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
-	}
+	Character->Fire();
 }
 
 void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
@@ -82,12 +44,15 @@ void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 	}
 
 	bAttached = true;
-	if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Player:%d"), Character->ScoreArrayIndex));
-	}
+	// if(GEngine)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Player:%d"), Character->ScoreArrayIndex));
+	// }
 	
 	UE_LOG(LogTemp, Warning, TEXT("Attach Weapon1！"));
+
+	Character->ProjectileClass = ProjectileClass;
+	
 	// Attach the weapon to the First Person Character
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
@@ -113,6 +78,56 @@ void UTP_WeaponComponent::AttachWeapon(AH2Character* TargetCharacter)
 		}
 	}
 }
+
+// void UTP_WeaponComponent::Fire_Implementation()
+// {
+// 	if (Character == nullptr || Character->GetController() == nullptr)
+// 	{
+// 		return;
+// 	}
+//
+// 	// Try and fire a projectile
+// 	if (ProjectileClass != nullptr)
+// 	{
+// 		UWorld* const World = GetWorld();
+// 		if (World != nullptr)
+// 		{
+// 			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+// 			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+// 			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+//
+// 			FActorSpawnParameters ActorSpawnParams;
+// 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+//
+// 			auto Projectile = World->SpawnActor<AH2Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+// 			if (Projectile)
+// 			{
+// 				Projectile->OnwerCharacter = Character;
+// 			}
+// 		}
+// 	}
+//
+// 	// Try and play the sound if specified
+// 	if (FireSound != nullptr)
+// 	{
+// 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
+// 	}
+//
+// 	// Try and play a firing animation if specified
+// 	if (FireAnimation != nullptr)
+// 	{
+// 		UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
+// 		if (AnimInstance != nullptr)
+// 		{
+// 			AnimInstance->Montage_Play(FireAnimation, 1.f);
+// 		}
+// 	}
+// }
+//
+// bool UTP_WeaponComponent::Fire_Validate()
+// {
+// 	return true;
+// }
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

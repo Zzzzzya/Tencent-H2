@@ -53,18 +53,17 @@ void AH2Character::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
-	UWorld* World = GetWorld();
-	if(World)
+	
+	if (!HasAuthority())
 	{
-		AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
-		if (GameState)
-		{
-			this->ScoreArrayIndex = GameState->Register();
-			UE_LOG(LogTemp, Warning, TEXT("Begin Player :%d"), this->ScoreArrayIndex);
-			
-		}
-	}
+		RegisterScoreIndex();
+	 }
+
+	UE_LOG(LogTemp, Warning, TEXT("Begin Player :%d"), this->ScoreArrayIndex);
+	
+
+	
+	
 
 }
 
@@ -92,6 +91,68 @@ void AH2Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AH2Character, Score);
+	DOREPLIFETIME(AH2Character, ScoreArrayIndex);
+	
+}
+
+void AH2Character::GetReadyToServer_Implementation()
+{
+	UWorld* World = GetWorld();
+	if(World)
+	{
+		AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
+		if (GameState)
+		{
+			GameState->GetOneReady();
+		}
+	}
+}
+
+void AH2Character::RegisterScoreIndex_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Begin Player"));
+	UWorld* World = GetWorld();
+	int res = 0;
+	if(World)
+	{
+		AGameStateShootScore* GameState = World->GetGameState<AGameStateShootScore>();
+		if (GameState)
+		{
+			res = GameState->Register();
+			this->ScoreArrayIndex = res;
+		}
+	}
+}
+
+void AH2Character::Fire_Implementation()
+{
+	if (GetController() == nullptr)
+	{
+		return;
+	}
+
+	// Try and fire a projectile
+	if (ProjectileClass != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			APlayerController* PlayerController = Cast<APlayerController>(GetController());
+			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+			
+			const FVector SpawnLocation = PlayerController->PlayerCameraManager->GetCameraLocation() + SpawnRotation.RotateVector( FVector(100.0f, 0.0f, 10.0f));
+
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			auto Projectile = World->SpawnActor<AH2Projectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			if (Projectile)
+			{
+				Projectile->OnwerCharacter = this;
+			}
+		}
+	}
+	
 }
 
 
@@ -129,4 +190,12 @@ void AH2Character::SetHasRifle(bool bNewHasRifle)
 bool AH2Character::GetHasRifle()
 {
 	return bHasRifle;
+}
+
+void AH2Character::GetReady()
+{
+	if (!HasAuthority())
+	{
+		GetReadyToServer();
+	}
 }
